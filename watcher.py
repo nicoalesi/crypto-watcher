@@ -80,9 +80,6 @@ scrollbar = tk.Scrollbar(
 canvas.configure(yscrollcommand = scrollbar.set)
 scrollbar.place(relx = 1, rely = 0, relheight = 1, anchor = "ne")
 
-# Set up mousewheel scrolling
-canvas.bind("<MouseWheel>", lambda event: canvas.yview_scroll(-int(event.delta / 120), "units"))
-
 # Set up crypto items' fonts
 # CI stands for Crypto Item
 CI_name_font = font.Font(family = "Cascadia Code", size = 36)
