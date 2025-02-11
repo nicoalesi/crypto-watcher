@@ -1,4 +1,6 @@
 from ctypes import windll
+from matplotlib.figure import Figure 
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import font
 from tkinter import ttk
@@ -18,7 +20,7 @@ title_label = ttk.Label(master = window, text = "Crypto watcher", font = title_f
 title_label.pack(fill = tk.Y, pady = 10)
 
 # Set up canvas
-canvas = tk.Canvas(master = window, scrollregion = (0, 0, 1400, 1700))
+canvas = tk.Canvas(master = window, scrollregion = (0, 0, 1400, 1700), bd = 0, highlightthickness = 0)
 
 # Set up scrollbar
 scrollbar = tk.Scrollbar(master = window, orient = "vertical", command = canvas.yview)
@@ -35,6 +37,21 @@ row_price_font = font.Font(family = "Cascadia Code", size = 24)
 row_price_change_font = font.Font(family = "Cascadia Code", size = 18)
 row_button_font = font.Font(family = "Cascadia Code", size = 15)
 
+# Create graph
+def create_graph(master):
+    figure = Figure(figsize = (5, 2), dpi = 100)
+
+    y = [i**2 for i in range(101)]
+
+    plot1 = figure.add_subplot(111)
+    plot1.plot(y)
+    plot1.axis("off")
+
+    graph = FigureCanvasTkAgg(figure, master = master)
+
+    return graph
+    
+
 # Create crypto's row
 def create_row(title, symbol, data):
     # Set up row's frame
@@ -49,9 +66,12 @@ def create_row(title, symbol, data):
     symbol_label.grid(row = 2, column = 0, rowspan = 2, sticky = tk.NW, padx = 10)
 
     # Set up canvas for graph
-    row_canvas = tk.Canvas(master = row_frame, height = 120, width = 500)
-    row_canvas.configure(bg="red")
-    row_canvas.grid(row = 0, column = 1, rowspan = 4, padx = 10)
+    # row_canvas = tk.Canvas(master = row_frame, height = 120, width = 500)
+    # row_canvas.configure(bg="red")
+    
+    row_canvas = create_graph(row_frame)
+    
+    row_canvas.get_tk_widget().grid(row = 0, column = 1, rowspan = 4, padx = 10)
 
     # Set up crypto's price label
     price_label = ttk.Label(master = row_frame, text = "123,43.23", font = row_price_font, width = 12, anchor = tk.SE)
@@ -73,8 +93,8 @@ def create_row(title, symbol, data):
     # Return crypto's frame
     return row_frame
 
-items = ["Bitcoin", "Ethereum", "Ripple", "Solana", "Dogecoin", "Shiba Inu", "Litecoin"]
-symbols = ["BTC", "ETH", "XRP", "SOL", "DOGE", "SHIB", "LTC"]
+items = ["Bitcoin", "Ethereum", "Ripple", "Solana", "Litecoin", "Dogecoin", "Shiba Inu"]
+symbols = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
 
 for i, text in enumerate(items):
     canvas.create_window(580, 100 + i * 250, window = create_row(text, symbols[i], {}))
