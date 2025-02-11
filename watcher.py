@@ -5,7 +5,11 @@ import tkinter as tk
 from tkinter import font
 from tkinter import ttk
 
-cryptos = [
+
+#--------------------------------- Costants ----------------------------------#
+
+# List of all cryptos supported
+CRYPTOS = [
     "Bitcoin",
     "Ethereum",
     "Ripple",
@@ -15,9 +19,14 @@ cryptos = [
     "Shiba Inu",
 ]
 
-symbols = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
+# List of all cryptos' symbols
+SYMBOLS = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
 
-dati = {
+
+#----------------------------- Global variables ------------------------------#
+
+# Temporary fake data for testing
+data = {
     "1D": [x for x in range(100)],
     "1M": [x**2 for x in range(100)],
     "1Y": [(2.7178)**x for x in range(100)],
@@ -28,6 +37,9 @@ cp = {
     "1M": "13%",
     "1Y": "19.23%",
 }
+
+
+#------------------------- Graphical User Interface --------------------------#
 
 # Set up window
 window = tk.Tk()
@@ -46,6 +58,7 @@ title_label = ttk.Label(
     font = title_font,
 )
 
+# Create main title
 title_label.pack(fill = tk.Y, pady = 10)
 
 # Set up canvas
@@ -63,6 +76,7 @@ scrollbar = tk.Scrollbar(
     command = canvas.yview,
 )
 
+# Set up window vertical scrolling
 canvas.configure(yscrollcommand = scrollbar.set)
 scrollbar.place(relx = 1, rely = 0, relheight = 1, anchor = "ne")
 
@@ -77,17 +91,28 @@ CI_price_font = font.Font(family = "Cascadia Code", size = 24)
 CI_price_change_font = font.Font(family = "Cascadia Code", size = 18)
 CI_button_font = font.Font(family = "Cascadia Code", size = 15)
     
+
+# Switch view between 1 day / 1 month / 1 year data
 def switch_view(view, price_change_label, plot, graph):
+    # Clear plot
     plot.cla()
-    plot.plot([x for x in range(100)], dati[view])
+
+    # Change plot values
+    plot.plot([x for x in range(100)], data[view])
+
+    # Delete axis
     plot.axis("off")
+
+    # Update graph
     graph.draw()
 
+    # Update price change
     price_change_label.config(text = cp[view])
+
 
 # Create crypto's row item
 def create_crypto_item(title, symbol):
-    # Set up row's frame
+    # Set up crypto's row frame
     frame = tk.Frame(master = canvas)
 
     # Set up crypto's name label
@@ -98,6 +123,7 @@ def create_crypto_item(title, symbol):
         width = 10,
     )
 
+    # Create crypto's name label
     name_label.grid(
         row = 0,
         column = 0,
@@ -114,6 +140,7 @@ def create_crypto_item(title, symbol):
         width = 10,
     )
 
+    # Create crypto's symbol label
     symbol_label.grid(
         row = 2,
         column = 0,
@@ -122,15 +149,22 @@ def create_crypto_item(title, symbol):
         padx = 10,
     )
 
-    # Set up graph
+    # Set up figure
     figure = Figure(figsize = (5, 2), dpi = 100)
 
+    # Add plot
     plot = figure.add_subplot(111)
-    plot.plot(dati["1D"], dati["1D"])
+
+    # Add plot values
+    plot.plot(data["1D"], data["1D"])
+
+    # Delete axis
     plot.axis("off")
 
+    # Set up graph
     graph = FigureCanvasTkAgg(figure, master = frame)
     
+    # Create graph
     graph.get_tk_widget().grid(row = 0, column = 1, rowspan = 4, padx = 10)
 
     # Set up crypto's price label
@@ -142,6 +176,7 @@ def create_crypto_item(title, symbol):
         anchor = tk.SE,
     )
 
+    # Create crypto's price label
     price_label.grid(
         row = 0,
         column = 2,
@@ -159,6 +194,7 @@ def create_crypto_item(title, symbol):
         anchor = tk.E,
     )
 
+    # Create crypto's price change label
     price_change_label.grid(
         row = 1,
         column = 2,
@@ -167,7 +203,7 @@ def create_crypto_item(title, symbol):
         padx = 10,
     )
 
-    # Set up time buttons
+    # Set up '1 day' button
     day_button = tk.Button(
         master = frame,
         text = "1D",
@@ -183,6 +219,7 @@ def create_crypto_item(title, symbol):
         ),
     )
 
+    # Set up '1 month' button
     month_button = tk.Button(
         master = frame,
         text = "1M",
@@ -198,6 +235,7 @@ def create_crypto_item(title, symbol):
         ),
     )
 
+    # Set up '1 year' button
     year_button = tk.Button(
         master = frame,
         text = "1Y",
@@ -213,6 +251,7 @@ def create_crypto_item(title, symbol):
         ),
     )
 
+    # Create all buttons
     day_button.grid(row = 2, column = 2, rowspan = 2, sticky = tk.E)
     month_button.grid(row = 2, column = 3, rowspan = 2, sticky = tk.E)
     year_button.grid(row = 2, column = 4, rowspan = 2, sticky = tk.E)
@@ -221,10 +260,12 @@ def create_crypto_item(title, symbol):
     return frame
 
 
-for i, crypto in enumerate(cryptos):
-    canvas.create_window(580, 100 + i * 250, window = create_crypto_item(crypto, symbols[i]))
+# Create all crypto items
+for i, crypto in enumerate(CRYPTOS):
+    symbol = SYMBOLS[i]
+    canvas.create_window(580, 100 + i * 250, window = create_crypto_item(crypto, symbol))
 
-# Pack canvas
+# Create canvas
 canvas.pack(expand = True, fill = "both", anchor = "ne")
 
 # Run
