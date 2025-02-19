@@ -3,7 +3,6 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import font
-from tkinter import ttk
 
 
 #--------------------------------- Costants ----------------------------------#
@@ -47,15 +46,17 @@ windll.shcore.SetProcessDpiAwareness(1)
 window.title("Crypto watcher")
 window.geometry("1200x740")
 window.resizable(False, False)
+window.config(bg = "white")
 
 # Set up title font
 title_font = font.Font(family = "Cascadia Code", size = 20)
 
 # Set up main title
-title_label = ttk.Label(
+title_label = tk.Label(
     master = window,
     text = "Crypto watcher",
     font = title_font,
+    bg = "white",
 )
 
 # Create main title
@@ -66,6 +67,7 @@ canvas = tk.Canvas(
     master = window,
     scrollregion = (0, 0, 1400, 1700),
     bd = 0,
+    bg = "white",
     highlightthickness = 0,
 )
 
@@ -77,7 +79,7 @@ scrollbar = tk.Scrollbar(
 )
 
 # Set up window vertical scrolling
-canvas.configure(yscrollcommand = scrollbar.set)
+canvas.config(yscrollcommand = scrollbar.set)
 scrollbar.place(relx = 1, rely = 0, relheight = 1, anchor = "ne")
 
 # Set up crypto items' fonts
@@ -110,14 +112,16 @@ def switch_view(view, price_change_label, plot, graph):
 # Create crypto's row item
 def create_crypto_item(title, symbol):
     # Set up crypto's row frame
-    frame = tk.Frame(master = canvas)
+    frame = tk.Frame(master = canvas, bg = "white")
 
     # Set up crypto's name label
-    name_label = ttk.Label(
+    name_label = tk.Label(
         master = frame,
         text = title,
         font = CI_name_font,
         width = 10,
+        bg = "white",
+        anchor = tk.W,
     )
 
     # Create crypto's name label
@@ -130,11 +134,13 @@ def create_crypto_item(title, symbol):
     )
 
     # Set up crypto's symbol label
-    symbol_label = ttk.Label(
+    symbol_label = tk.Label(
         master = frame,
         text = symbol,
         font = CI_symbol_font,
         width = 10,
+        bg = "white",
+        anchor = tk.W,
     )
 
     # Create crypto's symbol label
@@ -147,7 +153,7 @@ def create_crypto_item(title, symbol):
     )
 
     # Set up figure
-    figure = Figure(figsize = (5, 2), dpi = 100)
+    figure = Figure(figsize = (5, 1.5), dpi = 100)
 
     # Add plot
     plot = figure.add_subplot(111)
@@ -165,12 +171,13 @@ def create_crypto_item(title, symbol):
     graph.get_tk_widget().grid(row = 0, column = 1, rowspan = 4, padx = 10)
 
     # Set up crypto's price label
-    price_label = ttk.Label(
+    price_label = tk.Label(
         master = frame,
         text = "123,43.23",
         font = CI_price_font,
         width = 12,
         anchor = tk.SE,
+        bg = "white",
     )
 
     # Create crypto's price label
@@ -183,12 +190,13 @@ def create_crypto_item(title, symbol):
     )
 
     # Set up crypto's price change label
-    price_change_label = ttk.Label(
+    price_change_label = tk.Label(
         master = frame,
         text = "2.3%",
         font = CI_price_change_font,
         width = 10,
         anchor = tk.E,
+        bg = "white",
     )
 
     # Create crypto's price change label
@@ -214,6 +222,7 @@ def create_crypto_item(title, symbol):
             plot,
             graph,
         ),
+        bg = "white",
     )
 
     # Set up '1 month' button
@@ -230,6 +239,7 @@ def create_crypto_item(title, symbol):
             plot,
             graph,
         ),
+        bg = "white",
     )
 
     # Set up '1 year' button
@@ -246,6 +256,7 @@ def create_crypto_item(title, symbol):
             plot,
             graph,
         ),
+        bg = "white",
     )
 
     # Create all buttons
