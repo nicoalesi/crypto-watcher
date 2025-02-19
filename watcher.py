@@ -1,6 +1,7 @@
 from ctypes import windll
 from matplotlib.figure import Figure 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import requests
 import tkinter as tk
 from tkinter import font
 
@@ -21,20 +22,38 @@ CRYPTOS = [
 # List of all cryptos' symbols
 SYMBOLS = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
 
+# API key
+API_KEY = "XXXXXXXXXXXXXXX"
+
+# API data information
+data_information = [("3M", "Daily", 90), ("1Y", "Weekly", 52), ("5Y", "Monthly", 48)]
+
+
+#------------------------------------ API ------------------------------------#
+
+data = {
+    "3M": {},
+    "1Y": {},
+    "5Y": {},
+}
+
+for symbol in SYMBOLS:
+    for placeholder, frequency, quantity in data_information:
+        # Delete 2nd for loop and populate the dictionary manually
+        # url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_{frequency.upper()}&symbol={symbol}&market=EUR&apikey={API_KEY}"
+        # response = requests.get(url).json()
+        # days = list(response[f"Time Series (Digital Currency {frequency})"].values())
+        # data[placeholder][symbol] = [ float(day["4. close"]) for day in days[:100] ]
+        data[placeholder][symbol] = [ x/10 for x in range(quantity) ]
+
 
 #----------------------------- Global variables ------------------------------#
 
-# Temporary fake data for testing
-data = {
-    "1D": [x for x in range(100)],
-    "1M": [x**2 for x in range(100)],
-    "1Y": [(2.7178)**x for x in range(100)],
-}
-
+# Fake data for testing
 cp = {
-    "1D": "10%",
-    "1M": "13%",
-    "1Y": "19.23%",
+    "3M": "10%",
+    "1Y": "13%",
+    "5Y": "19.23%",
 }
 
 
@@ -92,12 +111,12 @@ CI_button_font = font.Font(family = "Cascadia Code", size = 15)
     
 
 # Switch view between 1 day / 1 month / 1 year data
-def switch_view(view, price_change_label, plot, graph):
+def switch_view(view, symbol, price_change_label, plot, graph):
     # Clear plot
     plot.cla()
 
     # Change plot values
-    plot.plot([x for x in range(100)], data[view])
+    plot.plot([ x for x in range(len(data[view][symbol])) ], data[view][symbol])
 
     # Delete axis
     plot.axis("off")
@@ -159,7 +178,7 @@ def create_crypto_item(title, symbol):
     plot = figure.add_subplot(111)
 
     # Add plot values
-    plot.plot(data["1D"], data["1D"])
+    plot.plot([ x for x in range(len(data["3M"][symbol])) ], data["3M"][symbol])
 
     # Delete axis
     plot.axis("off")
@@ -208,33 +227,17 @@ def create_crypto_item(title, symbol):
         padx = 10,
     )
 
-    # Set up '1 day' button
+    # Set up '3 months' button
     day_button = tk.Button(
         master = frame,
-        text = "1D",
+        text = "3M",
         height = 2,
         width = 4,
         bd = 0,
         font = CI_button_font,
         command = lambda: switch_view(
-            "1D",
-            price_change_label,
-            plot,
-            graph,
-        ),
-        bg = "white",
-    )
-
-    # Set up '1 month' button
-    month_button = tk.Button(
-        master = frame,
-        text = "1M",
-        height = 2, 
-        width = 4,
-        bd = 0,
-        font = CI_button_font,
-        command = lambda: switch_view(
-            "1M",
+            "3M",
+            symbol,
             price_change_label,
             plot,
             graph,
@@ -243,15 +246,34 @@ def create_crypto_item(title, symbol):
     )
 
     # Set up '1 year' button
-    year_button = tk.Button(
+    month_button = tk.Button(
         master = frame,
         text = "1Y",
-        height = 2,
+        height = 2, 
         width = 4,
         bd = 0,
         font = CI_button_font,
         command = lambda: switch_view(
             "1Y",
+            symbol,
+            price_change_label,
+            plot,
+            graph,
+        ),
+        bg = "white",
+    )
+
+    # Set up '5 years' button
+    year_button = tk.Button(
+        master = frame,
+        text = "5Y",
+        height = 2,
+        width = 4,
+        bd = 0,
+        font = CI_button_font,
+        command = lambda: switch_view(
+            "5Y",
+            symbol,
             price_change_label,
             plot,
             graph,
