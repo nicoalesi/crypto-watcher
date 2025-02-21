@@ -25,36 +25,59 @@ SYMBOLS = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
 # API key
 API_KEY = "XXXXXXXXXXXXXXX"
 
-# API data information
-data_information = [("3M", "Daily", 90), ("1Y", "Weekly", 52), ("5Y", "Monthly", 48)]
-
 
 #------------------------------------ API ------------------------------------#
 
+# Dictionary of dictionaries in which historical data are stored
 data = {
     "3M": {},
-    "1Y": {},
-    "5Y": {},
+    "2Y": {},
 }
 
 for symbol in SYMBOLS:
-    for placeholder, frequency, quantity in data_information:
+    # for placeholder, frequency, quantity in data_information:
         # Delete 2nd for loop and populate the dictionary manually
         # url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_{frequency.upper()}&symbol={symbol}&market=EUR&apikey={API_KEY}"
         # response = requests.get(url).json()
         # days = list(response[f"Time Series (Digital Currency {frequency})"].values())
         # data[placeholder][symbol] = [ float(day["4. close"]) for day in days[:100] ]
-        data[placeholder][symbol] = [ x/10 for x in range(quantity) ]
+    with open("daily_btc.txt") as file:
+        content = file.read()
+        prices = content.split(",")
+        floats = [ float(price) for price in prices ]
+
+    data["3M"][symbol] = floats[::-1]
+
+    with open("weekly_btc.txt") as file:
+        content = file.read()
+        prices = content.split(",")
+        floats = [ float(price) for price in prices[:90] ]
+    
+    data["2Y"][symbol] = floats[::-1]
 
 
 #----------------------------- Global variables ------------------------------#
 
-# Fake data for testing
-cp = {
-    "3M": "10%",
-    "1Y": "13%",
-    "5Y": "19.23%",
+# Dictionary to store latest prices
+prices = { symbol:data["3M"][symbol][-1] for symbol in SYMBOLS }
+
+# Dictionary of dictionaries to store price changes over a fixed amount of time
+price_change = {
+    "3M": {},
+    "2Y": {},
 }
+
+# Populate "price_change" dictionary
+for symbol in SYMBOLS:
+    # "3 months" price changes
+    start_price = data["3M"][symbol][0]
+    end_price = data["3M"][symbol][-1]
+    price_change["3M"][symbol] = (end_price / start_price - 1) * 100
+
+    # "2 years" price changes
+    start_price = data["2Y"][symbol][0]
+    end_price = data["2Y"][symbol][-1]
+    price_change["2Y"][symbol] = (end_price / start_price - 1) * 100
 
 
 #------------------------- Graphical User Interface --------------------------#
@@ -111,12 +134,20 @@ CI_button_font = font.Font(family = "Cascadia Code", size = 15)
     
 
 # Switch view between 1 day / 1 month / 1 year data
-def switch_view(view, symbol, price_change_label, plot, graph):
+def switch_view(view, symbol, price_label, price_change_label, plot, graph):
+    # Set up trend symbol and trend color
+    trend, trend_color = ("▼", "#D32F2F") if price_change["3M"][symbol] < 0 \
+                                          else ("▲", "#388E3C")
+
     # Clear plot
     plot.cla()
 
     # Change plot values
-    plot.plot([ x for x in range(len(data[view][symbol])) ], data[view][symbol])
+    plot.plot(
+        [ x for x in range(len(data[view][symbol])) ],
+        data[view][symbol],
+        color = trend_color,
+    )
 
     # Delete axis
     plot.axis("off")
@@ -125,13 +156,21 @@ def switch_view(view, symbol, price_change_label, plot, graph):
     graph.draw()
 
     # Update price change
-    price_change_label.config(text = cp[view])
+    price_change_label.config(
+        text = f"{trend} {abs(price_change[view][symbol]):.2f}%",
+    )
+
+    price_label.config(fg = trend_color)
 
 
 # Create crypto's row item
 def create_crypto_item(title, symbol):
     # Set up crypto's row frame
     frame = tk.Frame(master = canvas, bg = "white")
+
+    # Set up trend symbol and trend color
+    trend, trend_color = ("▼", "#D32F2F") if price_change["3M"][symbol] < 0 \
+                                          else ("▲", "#388E3C")
 
     # Set up crypto's name label
     name_label = tk.Label(
@@ -178,7 +217,11 @@ def create_crypto_item(title, symbol):
     plot = figure.add_subplot(111)
 
     # Add plot values
-    plot.plot([ x for x in range(len(data["3M"][symbol])) ], data["3M"][symbol])
+    plot.plot(
+        [ x for x in range(len(data["3M"][symbol])) ],
+        data["3M"][symbol],
+        color = trend_color,
+    )
 
     # Delete axis
     plot.axis("off")
@@ -189,13 +232,22 @@ def create_crypto_item(title, symbol):
     # Create graph
     graph.get_tk_widget().grid(row = 0, column = 1, rowspan = 4, padx = 10)
 
+    # Set up price label's text
+    if prices[symbol] > 100000:
+        price_text = f"{(prices[symbol] / 1000):.2f}K"
+    elif prices[symbol] < 0.0001:
+        price_text = "< 0.0001"
+    else:
+        price_text = prices[symbol]
+
     # Set up crypto's price label
     price_label = tk.Label(
         master = frame,
-        text = "123,43.23",
+        text = f"{price_text} EUR",
         font = CI_price_font,
         width = 12,
         anchor = tk.SE,
+        fg = trend_color,
         bg = "white",
     )
 
@@ -203,7 +255,7 @@ def create_crypto_item(title, symbol):
     price_label.grid(
         row = 0,
         column = 2,
-        columnspan = 3,
+        columnspan = 2,
         sticky = tk.SE,
         padx = 10,
     )
@@ -211,10 +263,11 @@ def create_crypto_item(title, symbol):
     # Set up crypto's price change label
     price_change_label = tk.Label(
         master = frame,
-        text = "2.3%",
+        text = f"{trend} {abs(price_change["3M"][symbol]):.2f}%",
         font = CI_price_change_font,
         width = 10,
         anchor = tk.E,
+        fg = trend_color,
         bg = "white",
     )
 
@@ -222,13 +275,13 @@ def create_crypto_item(title, symbol):
     price_change_label.grid(
         row = 1,
         column = 2,
-        columnspan = 3,
+        columnspan = 2,
         sticky = tk.E, 
         padx = 10,
     )
 
     # Set up '3 months' button
-    day_button = tk.Button(
+    months_button = tk.Button(
         master = frame,
         text = "3M",
         height = 2,
@@ -238,6 +291,7 @@ def create_crypto_item(title, symbol):
         command = lambda: switch_view(
             "3M",
             symbol,
+            price_label,
             price_change_label,
             plot,
             graph,
@@ -245,17 +299,18 @@ def create_crypto_item(title, symbol):
         bg = "white",
     )
 
-    # Set up '1 year' button
-    month_button = tk.Button(
+    # Set up '2 years' button
+    years_button = tk.Button(
         master = frame,
-        text = "1Y",
+        text = "2Y",
         height = 2, 
         width = 4,
         bd = 0,
         font = CI_button_font,
         command = lambda: switch_view(
-            "1Y",
+            "2Y",
             symbol,
+            price_label,
             price_change_label,
             plot,
             graph,
@@ -263,28 +318,22 @@ def create_crypto_item(title, symbol):
         bg = "white",
     )
 
-    # Set up '5 years' button
-    year_button = tk.Button(
-        master = frame,
-        text = "5Y",
-        height = 2,
-        width = 4,
-        bd = 0,
-        font = CI_button_font,
-        command = lambda: switch_view(
-            "5Y",
-            symbol,
-            price_change_label,
-            plot,
-            graph,
-        ),
-        bg = "white",
-    )
 
     # Create all buttons
-    day_button.grid(row = 2, column = 2, rowspan = 2, sticky = tk.E)
-    month_button.grid(row = 2, column = 3, rowspan = 2, sticky = tk.E)
-    year_button.grid(row = 2, column = 4, rowspan = 2, sticky = tk.E)
+    months_button.grid(
+        row = 2,
+        column = 2,
+        rowspan = 2,
+        sticky = tk.E,
+    )
+
+    years_button.grid(
+        row = 2,
+        column = 3,
+        rowspan = 2,
+        sticky = tk.E,
+        padx = 35,
+    )
 
     # Return crypto's frame
     return frame
@@ -293,7 +342,11 @@ def create_crypto_item(title, symbol):
 # Create all crypto items
 for i, crypto in enumerate(CRYPTOS):
     symbol = SYMBOLS[i]
-    canvas.create_window(580, 100 + i * 250, window = create_crypto_item(crypto, symbol))
+    canvas.create_window(
+        580,
+        100 + i * 250,
+        window = create_crypto_item(crypto, symbol),
+    )
 
 # Create canvas
 canvas.pack(expand = True, fill = "both", anchor = "ne")
