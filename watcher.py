@@ -23,8 +23,8 @@ CRYPTOS = [
 SYMBOLS = ["BTC", "ETH", "XRP", "SOL", "LTC", "DOGE", "SHIB"]
 
 # API key
-API_KEY = "XXXXXXXXXXXXXXX"
-
+API_KEY = "XXXXXXXXXXXXXXXX"
+           
 
 #------------------------------------ API ------------------------------------#
 
@@ -34,26 +34,31 @@ data = {
     "2Y": {},
 }
 
+# Populate data dictionary
 for symbol in SYMBOLS:
-    # for placeholder, frequency, quantity in data_information:
-        # Delete 2nd for loop and populate the dictionary manually
-        # url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_{frequency.upper()}&symbol={symbol}&market=EUR&apikey={API_KEY}"
-        # response = requests.get(url).json()
-        # days = list(response[f"Time Series (Digital Currency {frequency})"].values())
-        # data[placeholder][symbol] = [ float(day["4. close"]) for day in days[:100] ]
-    with open("daily_btc.txt") as file:
-        content = file.read()
-        prices = content.split(",")
-        floats = [ float(price) for price in prices ]
+    # Get last "3 months" data
 
-    data["3M"][symbol] = floats[::-1]
+    # API call
+    url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol={symbol}&market=EUR&apikey={API_KEY}"
+    response = requests.get(url).json()
 
-    with open("weekly_btc.txt") as file:
-        content = file.read()
-        prices = content.split(",")
-        floats = [ float(price) for price in prices[:90] ]
-    
-    data["2Y"][symbol] = floats[::-1]
+    # Discard useless data
+    days = list(response[f"Time Series (Digital Currency Daily)"].values())
+
+    # Convert to a numerical list
+    data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
+
+    # Get last "2 years" data
+
+    # API call
+    url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_WEEKLY&symbol={symbol}&market=EUR&apikey={API_KEY}"
+    response = requests.get(url).json()
+
+    # Discard useless data
+    weeks = list(response[f"Time Series (Digital Currency Weekly)"].values())
+
+    # Convert to a numerical list
+    data["2Y"][symbol] = [ float(week["4. close"]) for week in weeks[:104] ][::-1]
 
 
 #----------------------------- Global variables ------------------------------#
@@ -233,12 +238,14 @@ def create_crypto_item(title, symbol):
     graph.get_tk_widget().grid(row = 0, column = 1, rowspan = 4, padx = 10)
 
     # Set up price label's text
-    if prices[symbol] > 100000:
+    if prices[symbol] >= 100000:
         price_text = f"{(prices[symbol] / 1000):.2f}K"
-    elif prices[symbol] < 0.0001:
-        price_text = "< 0.0001"
-    else:
+    elif prices[symbol] >= 1:
+        price_text = f"{prices[symbol]:.2f}"
+    elif prices[symbol] >= 0.0001:
         price_text = prices[symbol]
+    else:
+        price_text = "< 0.0001"
 
     # Set up crypto's price label
     price_label = tk.Label(
