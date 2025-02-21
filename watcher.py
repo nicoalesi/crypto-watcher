@@ -2,6 +2,7 @@ from ctypes import windll
 from matplotlib.figure import Figure 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import requests
+from sys import exit
 import tkinter as tk
 from tkinter import font
 
@@ -36,29 +37,36 @@ data = {
 
 # Populate data dictionary
 for symbol in SYMBOLS:
-    # Get last "3 months" data
+    try:
+        # Get last "3 months" data
 
-    # API call
-    url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol={symbol}&market=EUR&apikey={API_KEY}"
-    response = requests.get(url).json()
+        # API call
+        url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol={symbol}&market=EUR&apikey={API_KEY}"
+        response = requests.get(url).json()
 
-    # Discard useless data
-    days = list(response[f"Time Series (Digital Currency Daily)"].values())
+        # Discard useless data
+        days = list(response[f"Time Series (Digital Currency Daily)"].values())
 
-    # Convert to a numerical list
-    data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
+        # Convert to a numerical list
+        data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
 
-    # Get last "2 years" data
+        # Get last "2 years" data
 
-    # API call
-    url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_WEEKLY&symbol={symbol}&market=EUR&apikey={API_KEY}"
-    response = requests.get(url).json()
+        # API call
+        url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_WEEKLY&symbol={symbol}&market=EUR&apikey={API_KEY}"
+        response = requests.get(url).json()
 
-    # Discard useless data
-    weeks = list(response[f"Time Series (Digital Currency Weekly)"].values())
+        # Discard useless data
+        weeks = list(response[f"Time Series (Digital Currency Weekly)"].values())
 
-    # Convert to a numerical list
-    data["2Y"][symbol] = [ float(week["4. close"]) for week in weeks[:104] ][::-1]
+        # Convert to a numerical list
+        data["2Y"][symbol] = [ float(week["4. close"]) for week in weeks[:104] ][::-1]
+
+    except requests.RequestException:
+        exit("HTTP request failed")
+        
+    except KeyError:
+        exit("API call rejected")
 
 
 #----------------------------- Global variables ------------------------------#
