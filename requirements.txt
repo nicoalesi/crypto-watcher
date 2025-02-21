@@ -1,0 +1,5 @@
+ctypes
+matplotlib
+requests
+sys
+tkinter
