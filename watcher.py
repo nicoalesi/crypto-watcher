@@ -7,6 +7,10 @@ import tkinter as tk
 from tkinter import font
 
 
+# Print loading message
+print("Initializing...")
+
+
 #--------------------------------- Costants ----------------------------------#
 
 # List of all cryptos supported
@@ -37,6 +41,9 @@ data = {
 
 # Populate data dictionary
 for symbol in SYMBOLS:
+    # Print loading message
+    print(f"Loading {symbol} data...")
+
     try:
         # Get last "3 months" data
 
@@ -63,13 +70,16 @@ for symbol in SYMBOLS:
         data["2Y"][symbol] = [ float(week["4. close"]) for week in weeks[:104] ][::-1]
 
     except requests.RequestException:
-        exit("HTTP request failed")
-        
+        exit("HTTP request failed.")
+
     except KeyError:
-        exit("API call rejected")
+        exit("API call rejected.")
 
 
 #----------------------------- Global variables ------------------------------#
+
+# Print loading message
+print("Loading GUI...")
 
 # Dictionary to store latest prices
 prices = { symbol:data["3M"][symbol][-1] for symbol in SYMBOLS }
