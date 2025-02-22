@@ -45,8 +45,6 @@ for symbol in SYMBOLS:
     print(f"Loading {symbol} data...")
 
     try:
-        # Get last "3 months" data
-
         # API call
         url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_DAILY&symbol={symbol}&market=EUR&apikey={API_KEY}"
         response = requests.get(url).json()
@@ -54,20 +52,11 @@ for symbol in SYMBOLS:
         # Discard useless data
         days = list(response[f"Time Series (Digital Currency Daily)"].values())
 
-        # Convert to a numerical list
+        # Get last "3 months" data
         data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
 
         # Get last "1 year" data
-
-        # API call
-        url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_WEEKLY&symbol={symbol}&market=EUR&apikey={API_KEY}"
-        response = requests.get(url).json()
-
-        # Discard useless data
-        weeks = list(response[f"Time Series (Digital Currency Weekly)"].values())
-
-        # Convert to a numerical list
-        data["1Y"][symbol] = [ float(week["4. close"]) for week in weeks[:52] ][::-1]
+        data["1Y"][symbol] = [ float(day["4. close"]) for day in days[:365] ][::-1]
 
     except requests.RequestException:
         exit("HTTP request failed.")
@@ -159,7 +148,7 @@ CI_button_font = font.Font(family = "Cascadia Code", size = 15)
 # Switch view between 1 day / 1 month / 1 year data
 def switch_view(view, symbol, price_label, price_change_label, plot, graph):
     # Set up trend symbol and trend color
-    trend, trend_color = ("▼", "#D32F2F") if price_change["3M"][symbol] < 0 \
+    trend, trend_color = ("▼", "#D32F2F") if price_change[view][symbol] < 0 \
                                           else ("▲", "#388E3C")
 
     # Clear plot
@@ -181,6 +170,7 @@ def switch_view(view, symbol, price_label, price_change_label, plot, graph):
     # Update price change
     price_change_label.config(
         text = f"{trend} {abs(price_change[view][symbol]):.2f}%",
+        fg = trend_color,
     )
 
     price_label.config(fg = trend_color)
