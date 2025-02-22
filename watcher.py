@@ -36,7 +36,7 @@ API_KEY = "XXXXXXXXXXXXXXXX"
 # Dictionary of dictionaries in which historical data are stored
 data = {
     "3M": {},
-    "2Y": {},
+    "1Y": {},
 }
 
 # Populate data dictionary
@@ -57,7 +57,7 @@ for symbol in SYMBOLS:
         # Convert to a numerical list
         data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
 
-        # Get last "2 years" data
+        # Get last "1 year" data
 
         # API call
         url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_WEEKLY&symbol={symbol}&market=EUR&apikey={API_KEY}"
@@ -67,7 +67,7 @@ for symbol in SYMBOLS:
         weeks = list(response[f"Time Series (Digital Currency Weekly)"].values())
 
         # Convert to a numerical list
-        data["2Y"][symbol] = [ float(week["4. close"]) for week in weeks[:104] ][::-1]
+        data["1Y"][symbol] = [ float(week["4. close"]) for week in weeks[:52] ][::-1]
 
     except requests.RequestException:
         exit("HTTP request failed.")
@@ -87,7 +87,7 @@ prices = { symbol:data["3M"][symbol][-1] for symbol in SYMBOLS }
 # Dictionary of dictionaries to store price changes over a fixed amount of time
 price_change = {
     "3M": {},
-    "2Y": {},
+    "1Y": {},
 }
 
 # Populate "price_change" dictionary
@@ -97,10 +97,10 @@ for symbol in SYMBOLS:
     end_price = data["3M"][symbol][-1]
     price_change["3M"][symbol] = (end_price / start_price - 1) * 100
 
-    # "2 years" price changes
-    start_price = data["2Y"][symbol][0]
-    end_price = data["2Y"][symbol][-1]
-    price_change["2Y"][symbol] = (end_price / start_price - 1) * 100
+    # "1 year" price changes
+    start_price = data["1Y"][symbol][0]
+    end_price = data["1Y"][symbol][-1]
+    price_change["1Y"][symbol] = (end_price / start_price - 1) * 100
 
 
 #------------------------- Graphical User Interface --------------------------#
@@ -324,16 +324,16 @@ def create_crypto_item(title, symbol):
         bg = "white",
     )
 
-    # Set up '2 years' button
+    # Set up '1 year' button
     years_button = tk.Button(
         master = frame,
-        text = "2Y",
+        text = "1Y",
         height = 2, 
         width = 4,
         bd = 0,
         font = CI_button_font,
         command = lambda: switch_view(
-            "2Y",
+            "1Y",
             symbol,
             price_label,
             price_change_label,
