@@ -53,10 +53,12 @@ for symbol in SYMBOLS:
         days = list(response[f"Time Series (Digital Currency Daily)"].values())
 
         # Get last "3 months" data
-        data["3M"][symbol] = [ float(day["4. close"]) for day in days[:90] ][::-1]
+        data["3M"][symbol] = \
+            [ float(day["4. close"]) for day in days[:90] ][::-1]
 
         # Get last "1 year" data
-        data["1Y"][symbol] = [ float(day["4. close"]) for day in days[:365] ][::-1]
+        data["1Y"][symbol] = \
+            [ float(day["4. close"]) for day in (days[:365:2] + [days[-1]]) ][::-1]
 
     except requests.RequestException:
         exit("HTTP request failed.")
