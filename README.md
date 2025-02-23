@@ -51,6 +51,10 @@ Everything is contained in a fixed-size window. There is a scrollable canvas wit
 
 The price change label shows an arrow indicating the crypto's trend. It also affects the color of graph, latest price and price change, which can be green or red.
 
+<br>
+
+![](/preview.png)
+
 ## API
 
 To make this program **Alpha Vantage**'s API has been used. It's free up to 25 requests per day. <br>
